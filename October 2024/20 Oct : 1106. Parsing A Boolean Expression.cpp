@@ -1,63 +1,35 @@
 class Solution {
 public:
-    // Function to parse OR expressions
-    bool parse_or(const string& expression, int& index) {
-        bool result = false;
-        while (expression[index] != ')') {
-            index++;  // Skip ',' or move to the next subexpression
-            result = result || parse(expression, index);
-        }
-        return result;
-    }
-    
-    // Function to parse AND expressions
-    bool parse_and(const string& expression, int& index) {
-        bool result = true;
-        while (expression[index] != ')') {
-            index++;  // Skip ',' or move to the next subexpression
-            result = result && parse(expression, index);
-        }
-        return result;
-    }
-    
-    // Function to parse NOT expressions
-    bool parse_not(const string& expression, int& index) {
-        index++;  // Skip '('
-        bool result = !parse(expression, index);
-        return result;
-    }
-    
-    // Main parse function to handle the expression recursively
-    bool parse(const string& expression, int& index) {
-        if (expression[index] == 't') {
-            return true;
-        } 
-        else if (expression[index] == 'f') {
-            return false;
-        } 
-        else if (expression[index] == '!') {
-            index += 2;  // Skip '!' and '('
-            bool result = parse_not(expression, index);
-            index++;  // Skip ')'
-            return result;
-        } 
-        else if (expression[index] == '&') {
-            index += 2;  // Skip '&' and '('
-            bool result = parse_and(expression, index);
-            index++;  // Skip ')'
-            return result;
-        } 
-        else if (expression[index] == '|') {
-            index += 2;  // Skip '|' and '('
-            bool result = parse_or(expression, index);
-            index++;  // Skip ')'
-            return result;
-        }
-        return false;
-    }
-    
     bool parseBoolExpr(string expression) {
-        int index = 0;
-        return parse(expression, index);
+        stack<char> st;
+
+        for (char currChar : expression) {
+            if (currChar == ',' || currChar == '(')
+                continue;  
+            if (currChar == 't' || currChar == 'f' || currChar == '!' ||
+                currChar == '&' || currChar == '|') {
+                st.push(currChar);
+            }
+            else if (currChar == ')') {
+                bool hasTrue = false, hasFalse = false;
+
+                while (st.top() != '!' && st.top() != '&' && st.top() != '|') {
+                    char topValue = st.top();
+                    st.pop();
+                    if (topValue == 't') hasTrue = true;
+                    if (topValue == 'f') hasFalse = true;
+                }
+                char op = st.top();
+                st.pop();
+                if (op == '!') {
+                    st.push(hasTrue ? 'f' : 't');
+                } else if (op == '&') {
+                    st.push(hasFalse ? 'f' : 't');
+                } else {
+                    st.push(hasTrue ? 't' : 'f');
+                }
+            }
+        }
+        return st.top() == 't';
     }
 };
