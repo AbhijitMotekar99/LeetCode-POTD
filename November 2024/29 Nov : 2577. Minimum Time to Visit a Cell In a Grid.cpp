@@ -1,44 +1,49 @@
 class Solution {
 public:
-    vector<int> findSplit(vector<int>& arr) {
-        int n = arr.size();
-        long long totalSum = 0;
-
-        // Compute the total sum of the array
-        for (int num : arr) {
-            totalSum += num;
-        }
-
-        // If totalSum is not divisible by 3, splitting is impossible
-        if (totalSum % 3 != 0) {
-            return {-1, -1};
-        }
-
-        long long target = totalSum / 3;
-        long long currentSum = 0;
-        int firstIndex = -1, secondIndex = -1;
-
-        // Find the first and second partitions
-        for (int i = 0; i < n; i++) {
-            currentSum += arr[i];
-
-            // Find the first partition
-            if (firstIndex == -1 && currentSum == target) {
-                firstIndex = i;
+    int minimumTime(vector<vector<int>>& grid) {
+        if (grid[0][1] > 1 && grid[1][0] > 1) return -1;
+        
+        int rows = grid.size();
+        int cols = grid[0].size();
+        
+        priority_queue<pair<int, pair<int, int>>, 
+                      vector<pair<int, pair<int, int>>>, 
+                      greater<pair<int, pair<int, int>>>> minHeap;
+        
+        minHeap.push({0, {0, 0}}); // time, row(x), col(y)
+        
+        vector<vector<int>> seen(rows, vector<int>(cols, 0));
+        seen[0][0] = 1;
+        
+        vector<pair<int, int>> moves = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+        
+        while (!minHeap.empty()) {
+            auto curr = minHeap.top();
+            int currTime = curr.first;
+            int currRow = curr.second.first;
+            int currCol = curr.second.second;
+            
+            minHeap.pop();
+            
+            if (currRow == rows - 1 && currCol == cols - 1) 
+                return currTime;
+            
+            for (auto move : moves) {
+                int nextRow = move.first + currRow;
+                int nextCol = move.second + currCol;
+                
+                if (nextRow >= 0 && nextCol >= 0 && 
+                    nextRow < rows && nextCol < cols && 
+                    !seen[nextRow][nextCol]) {
+                    
+                    int waitTime = ((grid[nextRow][nextCol] - currTime) % 2 == 0) ? 1 : 0;
+                    int nextTime = max(currTime + 1, grid[nextRow][nextCol] + waitTime);
+                    
+                    minHeap.push({nextTime, {nextRow, nextCol}});
+                    seen[nextRow][nextCol] = 1;
+                }
             }
-            // Find the second partition
-            else if (firstIndex != -1 && currentSum == 2 * target) {
-                secondIndex = i;
-                break;
-            }
         }
-
-        // If valid partitions are found, return the indices
-        if (firstIndex != -1 && secondIndex != -1) {
-            return {firstIndex, secondIndex};
-        }
-
-        // Otherwise, splitting is not possible
-        return {-1, -1};
+        return -1;
     }
 };
